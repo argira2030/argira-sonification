@@ -135,6 +135,10 @@ body::before {
   word-break: break-word; overflow-wrap: break-word;
   text-align: center; max-width: 100%;
 }
+@media (max-width: 480px) {
+  .formula-text { font-size: 1rem; letter-spacing: 0.02em; }
+  .formula-block { padding: 12px 14px; }
+}
 .formula-sub {
   font-family: 'Cinzel', serif; font-size: 0.7rem; letter-spacing: 0.2em;
   color: var(--text-dim); text-transform: uppercase;
