@@ -576,6 +576,75 @@
     </div>
   </section>
 
+  <!-- LUPA TEMPORAL -->
+  <section aria-labelledby="lupa-titulo" id="lupa-temporal" style="padding:64px 16px;">
+    <div class="section-header">
+      <span class="section-label">Efecto lupa temporal</span>
+      <h2 class="section-title" id="lupa-titulo">Ralentiza el sonido · Percibe la textura</h2>
+    </div>
+    <div style="max-width:680px;margin:0 auto;">
+      <p style="color:var(--text-dim);font-size:0.97rem;line-height:1.7;margin-bottom:28px;text-align:center;">
+        A velocidad normal el oído recibe la complejidad de golpe.<br>
+        Ralentizar el sonido es como usar una lupa sobre la textura cromática —<br>
+        la correlación r &gt; 0.92 se preserva: es la misma pintura, más despacio.
+      </p>
+
+      <!-- Reproductor Matisse -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
+        <div style="display:flex;align-items:center;gap:20px;padding:20px;border-bottom:1px solid var(--border);">
+          <img src="Matisse-Woman-with-a-Hat.jpg"
+               alt="La Mujer del Sombrero, Henri Matisse, 1905"
+               style="width:90px;height:90px;object-fit:cover;border-radius:2px;flex-shrink:0;">
+          <div>
+            <div style="font-family:'Cinzel',serif;font-size:0.72rem;letter-spacing:0.2em;color:var(--gold-dim);text-transform:uppercase;margin-bottom:4px;">Obra #15 / 16</div>
+            <div style="font-size:1rem;font-weight:600;color:var(--text);">Henri Matisse</div>
+            <div style="font-size:0.88rem;color:var(--text-dim);">La Mujer del Sombrero (1905)</div>
+            <div style="font-size:0.78rem;color:var(--text-dim);margin-top:4px;">hue_std ≈ 0.84 · Nivel ALTO</div>
+          </div>
+        </div>
+
+        <div style="padding:20px;">
+          <!-- Slider velocidad -->
+          <div style="margin-bottom:16px;">
+            <label style="font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-dim);display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+              <span>🐢 Velocidad (efecto lupa)</span>
+              <span id="lupaSpeedVal" style="color:var(--gold);font-family:'IBM Plex Mono',monospace;">1.00×</span>
+            </label>
+            <input type="range" id="lupaSpeed" min="0.5" max="1.5" step="0.05" value="1.0"
+                   style="width:100%;accent-color:var(--gold);cursor:pointer;"
+                   aria-label="Control de velocidad: 0.5 más lento, 1.5 más rápido">
+            <div style="display:flex;justify-content:space-between;font-size:0.62rem;color:var(--text-dim);margin-top:4px;">
+              <span>0.5× más lento · más grave</span>
+              <span>1.0× normal</span>
+              <span>1.5× más rápido · más agudo</span>
+            </div>
+          </div>
+
+          <!-- Botones -->
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button id="lupaBtnPlay"
+                    style="flex:1;padding:11px 16px;font-family:'Cinzel',serif;font-size:0.68rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);background:rgba(232,201,106,0.08);border:1.5px solid var(--gold-dim);border-radius:var(--radius);cursor:pointer;transition:all 0.2s;"
+                    aria-label="Reproducir sonificación de Matisse con lupa">
+              ▶ Escuchar con lupa
+            </button>
+            <button id="lupaBtnStop"
+                    style="flex:1;padding:11px 16px;font-family:'Cinzel',serif;font-size:0.68rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-dim);background:transparent;border:1.5px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all 0.2s;"
+                    aria-label="Parar reproducción">
+              ■ Parar
+            </button>
+          </div>
+
+          <!-- Estado -->
+          <div id="lupaStatus" style="margin-top:12px;font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--text-dim);text-align:center;min-height:20px;"></div>
+        </div>
+      </div>
+
+      <p style="font-size:0.72rem;color:var(--text-dim);text-align:center;margin-top:14px;font-family:'Cinzel',serif;letter-spacing:0.1em;text-transform:uppercase;">
+        La transformación es proporcional · r &gt; 0.92 se preserva
+      </p>
+    </div>
+  </section>
+
   <!-- TEST AUDITIVO -->
   <section aria-labelledby="test-titulo" id="test-auditivo">
     <div class="divider"><div class="divider-line"></div><span class="divider-text">Test auditivo</span><div class="divider-line"></div></div>
@@ -635,5 +704,77 @@
 </footer>
 
 <script src="script.js"></script>
+
+<script>
+// ========== LUPA TEMPORAL — Matisse ==========
+(function() {
+  const WAV_URL = 'Matisse-Woman-with-a-Hat.wav';
+  const slider  = document.getElementById('lupaSpeed');
+  const valEl   = document.getElementById('lupaSpeedVal');
+  const btnPlay = document.getElementById('lupaBtnPlay');
+  const btnStop = document.getElementById('lupaBtnStop');
+  const status  = document.getElementById('lupaStatus');
+
+  let audioCtx = null, source = null, buffer = null, isPlaying = false;
+
+  // Actualizar label del slider
+  slider.addEventListener('input', () => {
+    const v = parseFloat(slider.value);
+    valEl.textContent = v.toFixed(2) + '×';
+    if (source && isPlaying) {
+      source.playbackRate.setTargetAtTime(v, audioCtx.currentTime, 0.05);
+    }
+  });
+
+  // Cargar WAV una sola vez
+  async function cargarBuffer() {
+    if (buffer) return buffer;
+    status.textContent = 'Cargando audio…';
+    try {
+      const resp = await fetch(WAV_URL);
+      if (!resp.ok) throw new Error('No se pudo cargar el WAV');
+      const arrayBuf = await resp.arrayBuffer();
+      buffer = await audioCtx.decodeAudioData(arrayBuf);
+      status.textContent = '';
+      return buffer;
+    } catch(e) {
+      status.textContent = 'Error al cargar el audio. ¿Está el WAV en el servidor?';
+      return null;
+    }
+  }
+
+  btnPlay.addEventListener('click', async () => {
+    if (isPlaying) pararSonido();
+
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') await audioCtx.resume();
+
+    const buf = await cargarBuffer();
+    if (!buf) return;
+
+    const factor = parseFloat(slider.value);
+    source = audioCtx.createBufferSource();
+    source.buffer = buf;
+    source.playbackRate.value = factor;
+    source.connect(audioCtx.destination);
+    source.onended = () => { isPlaying = false; btnPlay.style.background = 'rgba(232,201,106,0.08)'; status.textContent = ''; };
+    source.start();
+    isPlaying = true;
+    btnPlay.style.background = 'var(--gold)';
+    btnPlay.style.color = '#000';
+    status.textContent = `Reproduciendo a ${factor.toFixed(2)}× · Matisse · hue_std ≈ 0.84`;
+  });
+
+  btnStop.addEventListener('click', pararSonido);
+
+  function pararSonido() {
+    if (source) { try { source.stop(); } catch(e) {} source = null; }
+    isPlaying = false;
+    btnPlay.style.background = 'rgba(232,201,106,0.08)';
+    btnPlay.style.color = 'var(--gold)';
+    status.textContent = '';
+  }
+})();
+</script>
 </body>
 </html>
