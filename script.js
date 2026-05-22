@@ -1326,11 +1326,11 @@ function initGalleryTouch() {
           window.ArgiraSpeech.speak(anuncio, { rate: 1.0 });
           const estimado = Math.max(2000, anuncio.length * 75);
           setTimeout(() => {
-            const texto2 = objeto ? `${posicion}: ${objeto}, ${nombre}, ${freq} hercios, pan ${panArrow}` : `${posicion}, ${nombre}, ${freq} hercios, pan ${panArrow}`;
+            const texto2 = objeto ? `${posicion}, ${nombre}, ${freq} hercios, pan ${panArrow}, ${objeto}` : `${posicion}, ${nombre}, ${freq} hercios, pan ${panArrow}`;
             window.ArgiraSpeech.speak(texto2, { rate: 0.92 });
           }, estimado);
         } else {
-          const texto = objeto ? `${posicion}: ${objeto}, ${nombre}, ${freq} hercios, pan ${panArrow}` : `${posicion}, ${nombre}, ${freq} hercios, pan ${panArrow}`;
+          const texto = objeto ? `${posicion}, ${nombre}, ${freq} hercios, pan ${panArrow}, ${objeto}` : `${posicion}, ${nombre}, ${freq} hercios, pan ${panArrow}`;
           window.ArgiraSpeech.speak(texto, { rate: 0.92 });
         }
       }, 500);
@@ -1616,42 +1616,7 @@ function initRoughnessWidgets() {
 function initClockScan() {
   // ── velocidad global del tour (compartida por todas las tarjetas) ──────────
   // 0 = lento (espera voz completa + 600 ms)
-  // 1 = normal (espera voz completa + 200 ms)
-  // 2 = rápido (1 200 ms fijo, sin esperar voz)
-  let _tourSpeed = 1;
-
-  // Inyectar selector de velocidad UNA sola vez en la galería
-  (function injectSpeedControl() {
-    if (document.getElementById('argira-tour-speed-ctrl')) return;
-    const galeria = document.getElementById('galeria');
-    if (!galeria) return;
-    const wrap = document.createElement('div');
-    wrap.id = 'argira-tour-speed-ctrl';
-    wrap.setAttribute('role', 'group');
-    wrap.setAttribute('aria-label', 'Velocidad del tour sonoro');
-    wrap.style.cssText = 'display:flex;align-items:center;gap:10px;margin:0 0 18px;flex-wrap:wrap;';
-    wrap.innerHTML = `
-      <span style="font-family:'Cinzel',serif;font-size:0.72rem;letter-spacing:0.16em;color:var(--gold-dim);text-transform:uppercase;">Velocidad tour:</span>
-      <button class="argira-speed-chip active" data-speed="0" style="font-size:0.74rem;padding:4px 12px;border-radius:20px;border:1px solid rgba(232,201,106,0.35);background:rgba(232,201,106,0.08);color:var(--gold);cursor:pointer;font-family:'IBM Plex Mono',monospace;" aria-pressed="false">🐢 Lento</button>
-      <button class="argira-speed-chip" data-speed="1" style="font-size:0.74rem;padding:4px 12px;border-radius:20px;border:1px solid rgba(232,201,106,0.35);background:rgba(232,201,106,0.18);color:var(--gold);cursor:pointer;font-family:'IBM Plex Mono',monospace;" aria-pressed="true">▶ Normal</button>
-      <button class="argira-speed-chip" data-speed="2" style="font-size:0.74rem;padding:4px 12px;border-radius:20px;border:1px solid rgba(232,201,106,0.35);background:rgba(232,201,106,0.08);color:var(--gold);cursor:pointer;font-family:'IBM Plex Mono',monospace;" aria-pressed="false">⚡ Rápido</button>
-    `;
-    // insert before the first child of the gallery section
-    const sectionHeader = galeria.querySelector('.section-header');
-    if (sectionHeader) sectionHeader.after(wrap);
-    else galeria.prepend(wrap);
-
-    wrap.addEventListener('click', e => {
-      const chip = e.target.closest('.argira-speed-chip');
-      if (!chip) return;
-      _tourSpeed = parseInt(chip.dataset.speed, 10);
-      wrap.querySelectorAll('.argira-speed-chip').forEach(b => {
-        const sel = parseInt(b.dataset.speed,10) === _tourSpeed;
-        b.style.background = sel ? 'rgba(232,201,106,0.28)' : 'rgba(232,201,106,0.08)';
-        b.setAttribute('aria-pressed', sel ? 'true' : 'false');
-      });
-    });
-  })();
+  let _tourSpeed = 0;
 
   // ── función auxiliar: esperar a que SpeechSynthesis termine ───────────────
   // Devuelve una Promise que se resuelve cuando la voz actual termina
@@ -2003,11 +1968,12 @@ function initCanvasTouch() {
     const colPos = relX < 0.33 ? 'izquierda' : relX < 0.66 ? 'centro' : 'derecha';
     const rowPos = relY < 0.33 ? 'arriba' : relY < 0.66 ? 'centro' : 'abajo';
     const posicion = (rowPos === 'centro' && colPos === 'centro') ? 'centro' : rowPos === 'centro' ? colPos : colPos === 'centro' ? rowPos : `${rowPos} ${colPos}`;
+    const panArrow = centroid.cx > 0.60 ? 'derecha' : centroid.cx > 0.53 ? 'centro-derecha' : centroid.cx < 0.40 ? 'izquierda' : centroid.cx < 0.47 ? 'centro-izquierda' : 'centro';
     playColorTone(h,s,v);
     setTimeout(() => {
       const key = posToKey(rowPos, colPos);
       const objeto = objectMap && objectMap[key] ? objectMap[key] : null;
-      const texto = objeto ? `${posicion}: ${objeto}, ${nombre}` : `${posicion}, ${nombre}`;
+      const texto = objeto ? `${posicion}, ${nombre}, ${freqMostrar} hercios, pan ${panArrow}, ${objeto}` : `${posicion}, ${nombre}, ${freqMostrar} hercios, pan ${panArrow}`;
       window.ArgiraSpeech.speak(texto, { rate:0.92 });
     }, 500);
   }
