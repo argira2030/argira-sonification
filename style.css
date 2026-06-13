@@ -1008,3 +1008,8 @@ details[open] > .faq-q::after { transform: rotate(180deg); }
   border-bottom: 2px solid var(--gold);
 }
 /* ─────────────────────────────────────────────────────────────────────────── */
+
+
+#btn-reader-mode {
+  display: none !important;
+}
