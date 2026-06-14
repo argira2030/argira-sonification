@@ -1060,6 +1060,5 @@ details[open] > .faq-q::after { transform: rotate(180deg); }
 /* ─────────────────────────────────────────────────────────────────────────── */
 
 
-#btn-reader-mode {
-  display: none !important;
-}
+
+
